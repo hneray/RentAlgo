@@ -164,10 +164,10 @@ public class RentAlgo {
 	public static int calculateTotalPayment() {
 		int totalPaid = 0;
 		for (int i = 0; i < numRenters; i++) {
-			System.out.println("Renter " + roomOwners[i] + "paid "
+			System.out.println("Renter " + roomOwners[i] + " paid "
 					+ (renters[roomOwners[i]].getValuation(i) + epsilon)
 					+ " for room " + i);
-			totalPaid += renters[roomOwners[i]].getValuation(i);
+			totalPaid += (renters[roomOwners[i]].getValuation(i) + epsilon);
 		}
 		return totalPaid;
 	}
@@ -180,11 +180,15 @@ public class RentAlgo {
 	 */
 	public static void redistribute(int totalPaid) {
 		// we'll round down here
+		System.out.println("Total paid = " + totalPaid);
+		System.out.println("Total Rent = " + totalRent);
+		System.out.println("Paid difference = " + (totalPaid- totalRent));
 		int cashBack = (totalPaid - totalRent) / 3;
+		System.out.println("Cashback = " + cashBack);
 		for (int i = 0; i < numRenters; i++) {
 			int payment = renters[roomOwners[i]].getValuation(i) + epsilon
 					- cashBack;
-			System.out.println("Renter " + roomOwners[i] + "ultimately pays "
+			System.out.println("Renter " + roomOwners[i] + " ultimately pays "
 					+ payment + " for room " + i);
 		}
 	}
