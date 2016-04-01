@@ -1,5 +1,5 @@
-import java.util.Arrays;
-import java.util.Scanner;
+import java.util.*;
+
 
 /**
  * This is a simple program to demonstrate a rent division algorithm. See README
@@ -10,11 +10,11 @@ import java.util.Scanner;
  */
 public class RentAlgo {
 
-	// numRenters = numRooms
+	// numRenters will = numRooms
 	private static final int numRenters = 3;
 
-	// indexed by room. e.g., roomOwners[0] contains index of player who owns
-	// room 0
+	// current owners of the rooms, indexed by room.
+	// e.g., roomOwners[0] contains the index of the player who owns room 0
 	private static int[] roomOwners = new int[numRenters];
 
 	// Note: Could use a 2d array with rooms in the first dimension
@@ -28,49 +28,116 @@ public class RentAlgo {
 
 	// total rent required for the entire apartment
 	private static int totalRent;
+	
+	private static final String welcomeMessage = "Welcome to the Rent Division Algorithm!";
 
 	public static void main(String[] args) {
 
 		// set each room to have no owner
 		Arrays.fill(roomOwners, -1);
 
+		welcomeMessage();
+		
+		// we will read the input from the renters
 		Scanner scanner = new Scanner(System.in);
+		
+		saveTotalRent(scanner);
 
-		System.out.println("Please enter total rent: ");
-		totalRent = Integer.parseInt(scanner.nextLine());
+		saveEpsilon(scanner);
 
-		String name = "";
+		//saveNamesAndBids(scanner);
 
+		scanner.close();
+
+		//runAuction();
+
+		// print out how much each person ultimately bid for their room
+		//int totalPaid = calculateTotalPayment();
+		// redistribute any extra cash evenly
+		//redistribute(totalPaid);
+
+	}
+
+	public static void welcomeMessage(){
+		System.out.println(welcomeMessage);
+	}
+	
+	
+	public static void saveTotalRent(Scanner scanner) {
+	
+		totalRent = 0;
+		while (totalRent <= 0) {
+			System.out.println("Please enter a valid total rent. Must be an integer > 0 ");
+			while (!scanner.hasNextInt()){
+				System.out.println("That's not an integer! Please enter a valid rent!");
+				scanner.next();
+			}
+			totalRent = Integer.parseInt(scanner.nextLine());
+		}
+	}
+
+	
+	//since we're dealing with dollars, we'll keep epsilon to integer values for now
+	public static void saveEpsilon(Scanner scanner) {
 		// error check for string
-		System.out.println("Please enter epsilon (measure of envy): ");
-		epsilon = Integer.parseInt(scanner.nextLine());
 
+		// epsilon must be > 0
+		// but it's max could be altered depending on desires of participants
+		// a lower max -> more refined result but longer runtime
+		//just for testing:totalRent = 1000;
+
+		//keep as double? round down?
+		int maxEpsilon = totalRent / 20;
+
+		epsilon = 0;
+
+		while (epsilon <= 0 || epsilon > maxEpsilon) {
+			System.out.println("Please enter epsilon (measure of envy). Must be an integer > 0 and <= " + maxEpsilon
+					);
+			while (!scanner.hasNextInt()){
+				System.out.println("That's not an integer! Please enter a valid epsilon!");
+				scanner.next();
+			}
+			
+			epsilon = (scanner.nextInt());
+		}
+
+	}
+
+	public static void saveNamesAndBids(Scanner scanner) {
+		String name = ""; // could make this stringbuilder?
+
+		// ask each renter for his/her name and his/her initial bids
 		for (int i = 0; i < numRenters; i++) {
-			System.out.println("Renter" + i + ":");
+			System.out.println("Renter" + (i+1) + ":");
+			//TODO
+			while (!scanner.hasNext()){
+				System.out.println("That's not an integer! Please enter a valid epsilon!");
+				scanner.next();
+			}
 			System.out.println("Please enter your name: ");
 			name = scanner.nextLine();
 			renters[i] = new Renter(name, numRenters);
 
 			int totalBid = 0;
+			// each renter's sum of bids will need to equal the total rent
 			while (totalBid != totalRent) {
 				totalBid = 0;
+				// enter the initial bids for each room
 				for (int j = 0; j < numRenters; j++) {
 					Integer valuation = -1;
 					while (valuation < 0 || valuation > totalRent) {
-						System.out
-								.println("Please enter your (integer, nonegative) valuation for room "
-										+ j + ": ");
+						System.out.println("Please enter your (integer, nonegative) valuation for room " + (j+1) + ": ");
 						valuation = Integer.parseInt(scanner.nextLine());
 						renters[i].setValuation(j, valuation);
 						totalBid += valuation;
 					}
 				}
-
 			}
-
 		}
+	}
 
-		scanner.close();
+	public static void runAuction() {
 
 		boolean playerWithoutRoom = true;
 
@@ -80,7 +147,7 @@ public class RentAlgo {
 			// iterate over the rooms
 			for (int i = 0; i < numRenters; i++) {
 
-				// put a room up for auction if it hasn't been claimed
+				// put a room up for auction only if it hasn't been claimed
 				if (roomOwners[i] == -1) {
 
 					// find who's willing to pay the most for this room
@@ -116,11 +183,6 @@ public class RentAlgo {
 			}
 
 		}
-
-		// print out how much each person ultimately bid for their room
-		int totalPaid = calculateTotalPayment();
-		// redistribute any extra cash evenly
-		redistribute(totalPaid);
 
 	}
 
@@ -165,8 +227,7 @@ public class RentAlgo {
 		int totalPaid = 0;
 		for (int i = 0; i < numRenters; i++) {
 			System.out.println("Renter " + roomOwners[i] + " paid "
-					+ (renters[roomOwners[i]].getValuation(i) + epsilon)
-					+ " for room " + i);
+					+ (renters[roomOwners[i]].getValuation(i) + epsilon) + " for room " + i);
 			totalPaid += (renters[roomOwners[i]].getValuation(i) + epsilon);
 		}
 		return totalPaid;
@@ -182,14 +243,12 @@ public class RentAlgo {
 		// we'll round down here
 		System.out.println("Total paid = " + totalPaid);
 		System.out.println("Total Rent = " + totalRent);
-		System.out.println("Paid difference = " + (totalPaid- totalRent));
+		System.out.println("Paid difference = " + (totalPaid - totalRent));
 		int cashBack = (totalPaid - totalRent) / 3;
 		System.out.println("Cashback = " + cashBack);
 		for (int i = 0; i < numRenters; i++) {
-			int payment = renters[roomOwners[i]].getValuation(i) + epsilon
-					- cashBack;
-			System.out.println("Renter " + roomOwners[i] + " ultimately pays "
-					+ payment + " for room " + i);
+			int payment = renters[roomOwners[i]].getValuation(i) + epsilon - cashBack;
+			System.out.println("Renter " + roomOwners[i] + " ultimately pays " + payment + " for room " + i);
 		}
 	}
 }
