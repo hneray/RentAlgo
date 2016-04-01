@@ -1,9 +1,6 @@
-import java.util.*;
-
-
 /**
- * This is a simple program to demonstrate a rent division algorithm. See README
- * for details
+ * This algorithm divides rent between 3 people for 3 rooms. See README for
+ * details.
  * 
  * @author hartneray (theory co-developed with Josh Levin)
  * 
@@ -17,18 +14,15 @@ public class RentAlgo {
 	// e.g., roomOwners[0] contains the index of the player who owns room 0
 	private int[] roomOwners = new int[numRenters];
 
-	// Note: Could use a 2d array with rooms in the first dimension
-	// and their ownership status and bids in the second
-	// but decided to use Player objects and a roomOwners array for
-	// readability and extensibility
-	private  Renter[] renters = new Renter[numRenters];
+	// array of the renters
+	private Renter[] renters = new Renter[numRenters];
 
 	// maximum "envy" value
 	private int epsilon;
 
 	// total rent required for the entire apartment
 	private int totalRent;
-	
+
 	public RentAlgo(int[] roomOwners, Renter[] renters, int epsilon, int totalRent) {
 		this.roomOwners = roomOwners;
 		this.renters = renters;
@@ -36,11 +30,17 @@ public class RentAlgo {
 		this.totalRent = totalRent;
 	}
 
+	/**
+	 * This is the main logic of the rent division algorithm. Assigns rooms to
+	 * each renter based on their initial bids with the ultimate result of
+	 * having no renter see another renter get a deal that is epsilon better
+	 * than his/hers.
+	 */
 	public void runAuction() {
 
+		// algorithm stops once everybody has a room
 		boolean playerWithoutRoom = true;
 
-		// algorithm stops once everybody has a room
 		while (playerWithoutRoom) {
 
 			// iterate over the rooms
@@ -65,11 +65,10 @@ public class RentAlgo {
 					// back in the market
 					releaseRoomOwnedByPlayer(highestBidder);
 
-					// an assign the room the player just won
+					// and assign the room the player just won
 					roomOwners[i] = highestBidder;
 
 					// now update the room valuations for the player who "won"
-					// room i
 					renters[roomOwners[i]].decrementValuations(epsilon);
 
 					// check if everybody has a room——-if they do, we're done
@@ -77,16 +76,13 @@ public class RentAlgo {
 						playerWithoutRoom = false;
 						break;
 					}
-
 				}
 			}
-
 		}
-
 	}
 
 	/**
-	 * Release rooms owned by this player back to the market
+	 * Release room owned by this player back to the market
 	 */
 	public boolean releaseRoomOwnedByPlayer(int playerNum) {
 		for (int i = 0; i < numRenters; i++) {
@@ -100,7 +96,7 @@ public class RentAlgo {
 	}
 
 	/**
-	 * check if there is at least one open room.
+	 * Check if there is at least one open room.
 	 */
 	public boolean openRoom() {
 		for (int i = 0; i < numRenters; i++) {
@@ -112,8 +108,6 @@ public class RentAlgo {
 
 	}
 
-	// we have to add back epsilon
-	// could use print format here
 	/**
 	 * Calculate the total amount collected. We have to add back epsilon to the
 	 * player's bids because the algorithm decrements their bids by epsilon
@@ -126,14 +120,12 @@ public class RentAlgo {
 		int totalPaid = 0;
 		for (int i = 0; i < numRenters; i++) {
 			System.out.println("Renter " + renters[roomOwners[i]].getName() + " paid "
-					+ (renters[roomOwners[i]].getValuation(i) + epsilon) + " for room " + (i+1));
+					+ (renters[roomOwners[i]].getValuation(i) + epsilon) + " for room " + (i + 1));
 			totalPaid += (renters[roomOwners[i]].getValuation(i) + epsilon);
 		}
 		return totalPaid;
 	}
 
-	// we have to add back epsilon
-	// could use print format here
 	/**
 	 * Redistribute evenly any difference between what the players bid and the
 	 * total rent required
@@ -145,9 +137,11 @@ public class RentAlgo {
 		System.out.println("Paid difference = " + (totalPaid - totalRent));
 		int cashBack = (totalPaid - totalRent) / 3;
 		System.out.println("Cashback = " + cashBack);
+
 		for (int i = 0; i < numRenters; i++) {
 			int payment = renters[roomOwners[i]].getValuation(i) + epsilon - cashBack;
-			System.out.println("Renter " + renters[roomOwners[i]].getName() + " ultimately pays " + payment + " for room " + (i+1));
+			System.out.println("Renter " + renters[roomOwners[i]].getName() + " ultimately pays " + payment
+					+ " for room " + (i + 1));
 		}
 	}
 }
